@@ -92,7 +92,8 @@ class Game:
 
     def __get_message(self, message_name):
         if message_name == "begin":
-            return "Welcome to Quick Maths.\n" \
+            return "Welcome to \"Yossi's-army\" team!\n" \
+                   "We will play Quick Maths.\n" \
                    "Player 1: {name1}\n" \
                    "Player 2: {name2}\n" \
                    "==\n" \

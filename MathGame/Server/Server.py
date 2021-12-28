@@ -8,6 +8,7 @@ from MathGame.Server.Game import Game
 
 class Server:
     def __init__(self):
+        # TODO: make attributes private
         self.is_alive = False
         self.local_ip = socket.gethostbyname(socket.gethostname())
         self.udp_socket = None
