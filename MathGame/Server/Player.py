@@ -13,3 +13,6 @@ class Player:
 
     def get_name(self):
         return self.__name
+
+    def kill(self):
+        self.__socket.close()

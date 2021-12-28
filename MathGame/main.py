@@ -7,3 +7,7 @@ def main():
     while input("Q for stop") != 'Q':
         continue
     server.stop()
+
+
+
+main()
