@@ -1,11 +1,14 @@
 from socket import *
 import socket
+import _thread as thread
+import time
+from MathGame.Server.Player import Player
 
 
 class Server:
     def __init__(self):
         self.local_ip = None
-        self.server_port = 12000
+        self.server_port = 13117
         self.udp_socket = None
         self.tcp_socket = None
         self.is_alive = False
@@ -23,7 +26,7 @@ class Server:
         self.tcp_socket.bind(('', self.server_port))
         self.tcp_socket.listen(1)
         # start sending udp broadcast messages
-        self.udp_socket.sendto("This is a test".encode(), ('255.255.255.255', 54545))
+        self.udp_socket.sendto("This is a test".encode(), ('255.255.255.255', 13117))
         # start strategy
         self.__strategy()
 
@@ -36,6 +39,7 @@ class Server:
         while self.is_alive:
             # wait for tcp connections
             # someone has connected
+            # player1 = Player(self.tcp_socket.accept(),)
             player1 = self.tcp_socket.accept()  # (connection socket, address)
             # someone has connected
             player2 = self.tcp_socket.accept()  # (connection socket, address)
@@ -50,6 +54,7 @@ class Server:
         self.__send_message_to_players(math_problem, player1_socket, player2_socket)
         # get answer
         # two threads,each for each player
+        # thread.start_new_thread()
         player1_answer = player1_socket.recv(1024)
         player2_answer = player2_socket.recv(1024)
         # set result
