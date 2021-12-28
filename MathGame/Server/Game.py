@@ -1,13 +1,14 @@
 import random
 import threading
 import time
+import socket
 
 
 class Game:
-    questions = {"1+1": 2, "2+2": 4, "3+3": 6, "4+4": 8, "5+5": 10}
+    questions = {"1+1": 2, "2+2": 4, "3+3": 6, "4+4": 8}
 
     def __init__(self, player1, player2):
-        self.finish = False
+        self.__finish = False
         question = self.__generate_question()
         self.__question = question[0]
         self.__answer = question[1]
@@ -29,6 +30,8 @@ class Game:
     def __game(self):
         # send problem to the two client
         self.__send_message_to_players(self.__get_message("begin") + self.__question + "?\n")
+        # wait 10 seconds
+        time.sleep(10)
         # get answer
         # two threads,each for each player
         response1 = []
@@ -66,16 +69,22 @@ class Game:
         self.__finish_game()
 
     def __finish_game(self):
+        self.__finish = True
         self.__player1.kill()
         self.__player2.kill()
+        print("Game over, sending out offer requests...")
 
-    @staticmethod
-    def __handle_player_question_answer(player, response):
+    def __handle_player_question_answer(self, player, response):
+        player.get_sockt.settimeout(10)
+        player.get_sockt.send(self.__get_message("question") + self.__question + "? ")
         start = time.localtime()
-        ans = player.get_sockt.recv(1024)
+        try:
+            ans = player.get_sockt.recv(1024)
+        except socket.timeout:
+            ans = float("-inf")
         end = time.localtime()
         response.append(ans)
-        response.append(start - end)
+        response.append(end - start)
 
     def __send_message_to_players(self, message):
         self.__player1.get_sockt.send(message)
@@ -87,9 +96,10 @@ class Game:
                    "Player 1: {name1}\n" \
                    "Player 2: {name2}\n" \
                    "==\n" \
-                   "Please answer the following question as fast as you can:\n" \
-                   "How much is " \
                 .format(name1=self.__player1.get_name(), name2=self.__player2.get_name())
+        if message_name == "question":
+            return "Please answer the following question as fast as you can:\n" \
+                   "How much is "
         if message_name == "over":
             return "Game over!\n" \
                    "The correct answer was "

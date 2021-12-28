@@ -29,7 +29,7 @@ class Server:
         self.tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.tcp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.tcp_socket.bind((self.local_ip, self.tcp_port))
-        self.tcp_socket.settimeout(10)
+        self.tcp_socket.settimeout(10)  # TODO: need it?
         self.tcp_socket.listen()
 
         print("Server started, listening on IP address " + self.local_ip)
@@ -42,7 +42,7 @@ class Server:
         message = struct.pack(self.udp_format, self.magic_cookie, self.message_type, self.tcp_port)
         while self.is_alive:
             self.udp_socket.sendto(message, (self.udp_ip, self.udp_port))
-            time.sleep(5)
+            time.sleep(1)
 
     def stop(self):
         self.is_alive = False
@@ -51,24 +51,34 @@ class Server:
 
     def __strategy(self):
         while self.is_alive:
+            player1 = None
+            player2 = None
             # wait for tcp connections
             # someone has connected
-            # player1 = Player(self.tcp_socket.accept(),)
             while True:
-                new_client1 = self.tcp_socket.accept()  # (connection socket, address)
-                if self.__check_player(new_client1):
-                    name1 = new_client1[0].recv(self.buffer_size).decode()
-                    player1 = Player(new_client1[0], new_client1[1], name1)
-                    break
+                try:
+                    new_client1 = self.tcp_socket.accept()  # (connection socket, address)
+                    if self.__check_player(new_client1):
+                        name1 = new_client1[0].recv(self.buffer_size).decode()
+                        player1 = Player(new_client1[0], new_client1[1], name1)
+                        break
+                except socket.timeout:
+                    if not self.is_alive:
+                        break
             # someone has connected
             while True:
-                new_client2 = self.tcp_socket.accept()  # (connection socket, address)
-                if self.__check_player(new_client2):
-                    name2 = new_client2[0].recv(self.buffer_size).decode()
-                    player2 = Player(new_client2[0], new_client2[1], name2)
-                    break
-            Game(player1, player2)
-            # start strategy game
+                try:
+                    new_client2 = self.tcp_socket.accept()  # (connection socket, address)
+                    if self.__check_player(new_client2):
+                        name2 = new_client2[0].recv(self.buffer_size).decode()
+                        player2 = Player(new_client2[0], new_client2[1], name2)
+                        break
+                except socket.timeout:
+                    if not self.is_alive:
+                        break
+            if player1 and player2:
+                # start strategy game
+                Game(player1, player2)
 
     def __check_player(self, player):
         # TODO: add logic
