@@ -1,5 +1,5 @@
-from socket import *
 import socket
+import struct
 import _thread as thread
 import time
 from MathGame.Server.Player import Player
@@ -8,32 +8,39 @@ from MathGame.Server.Player import Player
 class Server:
     def __init__(self):
         self.is_alive = False
-        self.local_ip = None
+        self.local_ip = socket.gethostbyname(socket.gethostname())
         self.udp_socket = None
         self.udp_ip = "255.255.255.255"
         self.udp_port = 13117
+        self.udp_format = "IbH"
         self.tcp_socket = None
-        self.tcp_ip = '255.255.255.255'
-        self.tcp_port = 13117
-        self.magic_cookie = int(0xabcddcba)
-        self.message_type = int(0x2)
+        self.tcp_port = 0  # TODO: what should be the value?
+        self.buffer_size = 1024
+        self.magic_cookie = 0xabcddcba
+        self.message_type = 0x2
 
     def start(self):
         self.is_alive = True
         # open udp connection
-        self.udp_socket = socket(AF_INET, SOCK_DGRAM)
-        self.udp_socket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-        self.udp_socket.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
-        self.local_ip = socket.gethostbyname(socket.gethostname())
-        print("Server started,listening on IP address" + self.local_ip)
+        self.udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.udp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         # open tcp connection
-        self.tcp_socket = socket(AF_INET, SOCK_STREAM)
-        self.tcp_socket.bind(("", self.tcp_port))
+        self.tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.tcp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.tcp_socket.bind((self.local_ip, self.tcp_port))
         self.tcp_socket.listen(1)
+
+        print("Server started, listening on IP address " + self.local_ip)
         # start sending udp broadcast messages
-        self.udp_socket.sendto("This is a test".encode(), (self.udp_ip, self.udp_port))
+        self.send_broadcast()
         # start strategy
         self.__strategy()
+
+    def send_broadcast(self):
+        message = struct.pack(self.udp_format, self.magic_cookie, self.message_type, self.tcp_port)
+        while self.is_alive:
+            self.udp_socket.sendto(message, (self.udp_ip, self.udp_port))
+            time.sleep(5)
 
     def stop(self):
         self.is_alive = False
