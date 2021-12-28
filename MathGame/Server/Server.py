@@ -7,11 +7,16 @@ from MathGame.Server.Player import Player
 
 class Server:
     def __init__(self):
-        self.local_ip = None
-        self.server_port = 13117
-        self.udp_socket = None
-        self.tcp_socket = None
         self.is_alive = False
+        self.local_ip = None
+        self.udp_socket = None
+        self.udp_ip = "255.255.255.255"
+        self.udp_port = 13117
+        self.tcp_socket = None
+        self.tcp_ip = '255.255.255.255'
+        self.tcp_port = 13117
+        self.magic_cookie = int(0xabcddcba)
+        self.message_type = int(0x2)
 
     def start(self):
         self.is_alive = True
@@ -23,10 +28,10 @@ class Server:
         print("Server started,listening on IP address" + self.local_ip)
         # open tcp connection
         self.tcp_socket = socket(AF_INET, SOCK_STREAM)
-        self.tcp_socket.bind(('', self.server_port))
+        self.tcp_socket.bind(("", self.tcp_port))
         self.tcp_socket.listen(1)
         # start sending udp broadcast messages
-        self.udp_socket.sendto("This is a test".encode(), ('255.255.255.255', 13117))
+        self.udp_socket.sendto("This is a test".encode(), (self.udp_ip, self.udp_port))
         # start strategy
         self.__strategy()
 
@@ -40,11 +45,20 @@ class Server:
             # wait for tcp connections
             # someone has connected
             # player1 = Player(self.tcp_socket.accept(),)
-            player1 = self.tcp_socket.accept()  # (connection socket, address)
+            while True:
+                player1 = self.tcp_socket.accept()  # (connection socket, address)
+                if self.__check_player(player1):
+                    break
             # someone has connected
-            player2 = self.tcp_socket.accept()  # (connection socket, address)
+            while True:
+                player2 = self.tcp_socket.accept()  # (connection socket, address)
+                if self.__check_player(player2):
+                    break
             self.__game(player1, player2)
             # start strategy game
+
+    def __check_player(self, player):
+        pass
 
     def __game(self, player1, player2):
         player1_socket = player1[0]
