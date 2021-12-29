@@ -14,9 +14,9 @@ class Server:
         self.udp_socket = None
         self.udp_ip = "255.255.255.255"
         self.udp_port = 13117
-        self.udp_format = "IbH"
+        self.udp_format = ">IBH"  # "IbH"
         self.tcp_socket = None
-        self.tcp_port = 0  # TODO: what should be the value?
+        self.tcp_port = 55566  # TODO: what should be the value?
         self.buffer_size = 1024
         self.magic_cookie = 0xabcddcba
         self.message_type = 0x2
@@ -29,7 +29,7 @@ class Server:
         # open tcp connection
         self.tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.tcp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.tcp_socket.bind((self.local_ip, self.tcp_port))
+        self.tcp_socket.bind(("", self.tcp_port))  # TODO: "" was self.local_ip
         self.tcp_socket.settimeout(10)  # TODO: need it?
         self.tcp_socket.listen()
 

@@ -15,7 +15,7 @@ class Client:
         self.local_ip = socket.gethostbyname(socket.gethostname())
         self.udp_socket = None
         self.udp_port = 13117
-        self.udp_format = "IbH"
+        self.udp_format = ">IBH"  # "IbH"
         self.server_ip = None
         self.tcp_socket = None
         self.tcp_port = 0  # TODO: what should be the value?
@@ -27,7 +27,8 @@ class Client:
         self.is_alive = True
         # open udp listener
         self.udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.udp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)  # TODO: change the SO_REUSEPORT was SO_REUSEADDR
+        self.udp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,
+                                   1)  # TODO: change the SO_REUSEPORT was SO_REUSEADDR
         self.udp_socket.bind(("", self.udp_port))
 
         while self.is_alive:
@@ -53,8 +54,7 @@ class Client:
                 continue
             if message[0] == self.magic_cookie and message[1] == self.message_type:
                 print(f"Received offer from {address[0]}, attempting to connect...")
-                break
-            return address[0], int(message[2])
+                return address[0], int(message[2])
 
     def connect_to_server(self):
         if not self.is_alive:
@@ -82,7 +82,7 @@ class Client:
 
     def __send_message(self, message):
         try:
-            self.tcp_socket.send(message.encode('utf-8'))
+            self.tcp_socket.send(message.encode())
         except:
             print("Server disconnected, listening for offer requests...")
 

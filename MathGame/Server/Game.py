@@ -21,15 +21,13 @@ class Game:
     @staticmethod
     def __generate_question():
         rand = random.randrange(0, len(Game.questions))
-        key = Game.questions.keys()[rand]
+        key = list(Game.questions.keys())[rand]
         return key, Game.questions[key]
 
     def get_thread(self):
         return self.__thread
 
     def __game(self):
-        # send problem to the two client
-        self.__send_message_to_players(self.__get_message("begin") + self.__question + "?\n")
         # wait 10 seconds
         time.sleep(10)
         # get answer
@@ -44,7 +42,7 @@ class Game:
         t2.join()
 
         # set result
-        self.__send_message_to_players(self.__get_message("over") + self.__answer + "!\n\n")
+        message = self.__get_message("over") + str(self.__answer) + "!\n\n"
 
         if response1[0] == self.__answer and response2[0] != self.__answer:
             winner = self.__player1.get_name()
@@ -61,9 +59,12 @@ class Game:
             winner = None
 
         if winner is None:
-            self.__send_message_to_players(self.__get_message("draw"))
+            message += self.__get_message("draw")
         else:
-            self.__send_message_to_players(self.__get_message("win") + winner)
+            message += self.__get_message("win")
+
+        # send results
+        self.__send_message_to_players(message)
 
         # close game
         self.__finish_game()
@@ -76,7 +77,8 @@ class Game:
 
     def __handle_player_question_answer(self, player, response):
         player.get_sockt.settimeout(10)
-        player.get_sockt.send(self.__get_message("question") + self.__question + "? ")
+        message = self.__get_message("begin") + self.__question + "?\n"
+        player.get_sockt.send(message.encode())
         start = time.localtime()
         try:
             ans = player.get_sockt.recv(1024)
@@ -87,8 +89,8 @@ class Game:
         response.append(end - start)
 
     def __send_message_to_players(self, message):
-        self.__player1.get_sockt.send(message)
-        self.__player2.get_sockt.send(message)
+        self.__player1.get_socket().send(message.encode())
+        self.__player2.get_socket().send(message.encode())
 
     def __get_message(self, message_name):
         if message_name == "begin":
@@ -97,10 +99,9 @@ class Game:
                    "Player 1: {name1}\n" \
                    "Player 2: {name2}\n" \
                    "==\n" \
+                   "Please answer the following question as fast as you can:\n" \
+                   "How much is" \
                 .format(name1=self.__player1.get_name(), name2=self.__player2.get_name())
-        if message_name == "question":
-            return "Please answer the following question as fast as you can:\n" \
-                   "How much is "
         if message_name == "over":
             return "Game over!\n" \
                    "The correct answer was "
