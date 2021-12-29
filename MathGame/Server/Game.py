@@ -28,7 +28,7 @@ class Game:
 
     def __game(self):
         # wait 10 seconds
-        # time.sleep(10)  # TODO: uncomment
+        time.sleep(10)
         # get answer
         # two threads,each for each player
         response1 = queue.Queue()
@@ -78,7 +78,7 @@ class Game:
 
     def __handle_player_question_answer(self, player, response):
         player.get_socket().settimeout(10)
-        message = self.__get_message("begin") + self.__question + "? \n"
+        message = self.__get_message("icon") + self.__get_message("begin") + self.__question + "? \n"
         player.get_socket().send(message.encode())
         start = time.time()
         try:
@@ -96,6 +96,27 @@ class Game:
         self.__player2.get_socket().send(message.encode())
 
     def __get_message(self, message_name):
+        if message_name == "icon":
+            return " __     __                      _   _ \n" \
+                   " \ \   / /                     (_) ( ) \n" \
+                   "  \ \_/ /    ___    ___   ___   _  |/   ___   ______    __ _   _ __   _ __ ___    _   _ \n" \
+                   "   \   /    / _ \  / __| / __| | |     / __| |______|  / _` | | '__| | '_ ` _ \  | | | | \n" \
+                   "    | |    | (_) | \__ \ \__ \ | |     \__ \          | (_| | | |    | | | | | | | |_| | \n" \
+                   "    |_|     \___/  |___/ |___/ |_|     |___/           \__,_| |_|    |_| |_| |_|  \__, | \n" \
+                   "                                                                                   __/ | \n" \
+                   "                                                                                  |___/  \n" \
+                   " \n" \
+                   " +--^----------,--------,-----,--------^-, \n" \
+                   " | |||||||||   `--------'     |          O \n" \
+                   " `+---------------------------^----------| \n" \
+                   "   `\_,---------,---------,--------------' \n" \
+                   "     / XXXXXX /'|       /' \n" \
+                   "    / XXXXXX /  `\    /' \n" \
+                   "   / XXXXXX /`-------' \n" \
+                   "  / XXXXXX / \n" \
+                   " / XXXXXX / \n" \
+                   "(________( \n" \
+                   "`------' \n\n"
         if message_name == "begin":
             return "Welcome to \"Yossi's-army\" team!\n" \
                    "We will play Quick Maths.\n" \

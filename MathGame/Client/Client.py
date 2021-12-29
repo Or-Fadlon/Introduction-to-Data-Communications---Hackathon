@@ -2,11 +2,6 @@ import socket
 import struct
 import threading
 
-try:  # linux
-    import getch as getch
-except:  # windows
-    import msvcrt as getch
-
 
 class Client:
     def __init__(self, team_name):
@@ -20,7 +15,7 @@ class Client:
         self.udp_format = ">IBH"  # "IbH"
         self.server_ip = None
         self.tcp_socket = None
-        self.tcp_port = 0  # TODO: what should be the value?
+        self.tcp_port = 0
         self.buffer_size = 1024
         self.magic_cookie = 0xabcddcba
         self.message_type = 0x2
@@ -29,17 +24,15 @@ class Client:
         self.is_alive = True
         # open udp listener
         self.udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.udp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,
-                                   1)  # TODO: change the SO_REUSEPORT was SO_REUSEADDR
+        self.udp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # TODO: SO_REUSEPORT was SO_REUSEADDR
         self.udp_socket.bind(("", self.udp_port))
 
         while self.is_alive:
             self.server_ip, self.tcp_port = self.__find_server()
             try:
                 self.connect_to_server()
-            except Exception as e:
-                # TODO: handle
-                print("Connection failed , reconnecting ...")
+            except:
+                print("Connection failed...")
                 continue
             self.__game()
 

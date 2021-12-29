@@ -70,10 +70,9 @@ class Server:
             while True:
                 try:
                     new_client1 = self.tcp_socket.accept()  # (connection socket, address)
-                    if self.__check_player(new_client1):
-                        name1 = new_client1[0].recv(self.buffer_size).decode()
-                        player1 = Player(new_client1[0], new_client1[1], name1)
-                        break
+                    name1 = new_client1[0].recv(self.buffer_size).decode()
+                    player1 = Player(new_client1[0], new_client1[1], name1)
+                    break
                 except socket.timeout:
                     if not self.is_alive:
                         break
@@ -81,10 +80,9 @@ class Server:
             while True:
                 try:
                     new_client2 = self.tcp_socket.accept()  # (connection socket, address)
-                    if self.__check_player(new_client2):
-                        name2 = new_client2[0].recv(self.buffer_size).decode()
-                        player2 = Player(new_client2[0], new_client2[1], name2)
-                        break
+                    name2 = new_client2[0].recv(self.buffer_size).decode()
+                    player2 = Player(new_client2[0], new_client2[1], name2)
+                    break
                 except socket.timeout:
                     if not self.is_alive:
                         break
@@ -94,7 +92,3 @@ class Server:
                 self.__stop_broadcast()
                 # start strategy game
                 Game(player1, player2)
-
-    def __check_player(self, player):
-        # TODO: add logic
-        return True
