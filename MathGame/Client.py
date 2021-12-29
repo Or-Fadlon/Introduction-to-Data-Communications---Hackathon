@@ -6,12 +6,12 @@ import random
 
 class Client:
     def __init__(self, team_name):
-        # TODO: make attributes private
         self.team_name = team_name
         self.is_alive = False
         self.is_playing = False
         self.local_ip = socket.gethostbyname(socket.gethostname())
         self.udp_socket = None
+        self.udp_ip = "172.99.255.255"  # TODO: local- "",dev- "172.1.255.255" , test- "172.99.255.255"
         self.udp_port = 13117
         self.udp_format = ">IBH"  # "IbH"
         self.server_ip = None
@@ -26,7 +26,7 @@ class Client:
         # open udp listener
         self.udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.udp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # TODO: SO_REUSEPORT was SO_REUSEADDR
-        self.udp_socket.bind(("", self.udp_port))
+        self.udp_socket.bind((self.udp_ip, self.udp_port))
 
         while self.is_alive:
             self.server_ip, self.tcp_port = self.__find_server()
