@@ -1,6 +1,7 @@
 import socket
 import struct
 import threading
+import random
 
 
 class Client:
@@ -92,3 +93,8 @@ class Client:
         except:
             print("Server disconnected, listening for offer requests...")
             self.is_playing = False
+
+
+if __name__ == '__main__':
+    client = Client("Or_and_Ido" + str(random.randrange(0, 5)))
+    client.start()
