@@ -10,6 +10,7 @@ class Server:
     def __init__(self):
         # TODO: make attributes private
         self.is_alive = False
+        self.is_broadcasting = False
         self.local_ip = socket.gethostbyname(socket.gethostname())
         self.udp_socket = None
         self.udp_ip = "255.255.255.255"
@@ -34,24 +35,34 @@ class Server:
         self.tcp_socket.listen()
 
         print("Server started, listening on IP address " + self.local_ip)
-        # start sending udp broadcast messages
-        threading.Thread(target=self.send_broadcast).start()
         # start strategy
         self.__strategy()
 
-    def send_broadcast(self):
+    def __start_broadcast(self):
+        self.is_broadcasting = True
+        threading.Thread(target=self.__send_broadcast).start()
+
+    def __send_broadcast(self):
         message = struct.pack(self.udp_format, self.magic_cookie, self.message_type, self.tcp_port)
-        while self.is_alive:
+        while self.is_broadcasting:
             self.udp_socket.sendto(message, (self.udp_ip, self.udp_port))
             time.sleep(1)
 
+    def __stop_broadcast(self):
+        self.is_broadcasting = False
+
     def stop(self):
         self.is_alive = False
+        self.__stop_broadcast()
         # kill tcp
+        self.tcp_socket.close()
         # Kill UDP
+        self.udp_socket.close()
 
     def __strategy(self):
         while self.is_alive:
+            # start sending udp broadcast messages
+            self.__start_broadcast()
             player1 = None
             player2 = None
             # wait for tcp connections
@@ -77,7 +88,10 @@ class Server:
                 except socket.timeout:
                     if not self.is_alive:
                         break
+
             if player1 and player2:
+                # stop broadcast
+                self.__stop_broadcast()
                 # start strategy game
                 Game(player1, player2)
 

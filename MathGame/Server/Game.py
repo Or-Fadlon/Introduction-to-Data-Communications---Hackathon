@@ -16,17 +16,15 @@ class Game:
         self.__player1 = player1
         self.__player2 = player2
 
-        self.__thread = threading.Thread(target=self.__game)
-        self.__thread.start()
+        self.__game()
+        # self.__thread = threading.Thread(target=self.__game)
+        # self.__thread.start()
 
     @staticmethod
     def __generate_question():
         rand = random.randrange(0, len(Game.questions))
         key = list(Game.questions.keys())[rand]
         return key, Game.questions[key]
-
-    def get_thread(self):
-        return self.__thread
 
     def __game(self):
         # wait 10 seconds
@@ -79,12 +77,10 @@ class Game:
         print("Game over, sending out offer requests...")
 
     def __handle_player_question_answer(self, player, response):
-        player.get_socket().settimeout(10)
+        player.get_socket().settimeout(10)  # TODO: 3 change back to 10
         message = self.__get_message("begin") + self.__question + "?\n"
         player.get_socket().send(message.encode())
         start = time.time()
-        if player is self.__player1:
-            time.sleep(5)
         try:
             ans = player.get_socket().recv(1024)
         except socket.timeout:
@@ -105,7 +101,7 @@ class Game:
                    "Player 2: {name2}\n" \
                    "==\n" \
                    "Please answer the following question as fast as you can:\n" \
-                   "How much is" \
+                   "How much is " \
                 .format(name1=self.__player1.get_name(), name2=self.__player2.get_name())
         if message_name == "over":
             return "Game over!\n" \

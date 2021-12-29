@@ -1,5 +1,6 @@
 import socket
 import struct
+import threading
 
 try:  # linux
     import getch as getch
@@ -12,6 +13,7 @@ class Client:
         # TODO: make attributes private
         self.team_name = team_name
         self.is_alive = False
+        self.is_playing = False
         self.local_ip = socket.gethostbyname(socket.gethostname())
         self.udp_socket = None
         self.udp_port = 13117
@@ -63,27 +65,36 @@ class Client:
         self.tcp_socket.connect((self.server_ip, self.tcp_port))
 
     def __game(self):
+        self.is_playing = True
         self.__send_message(self.team_name + "\n")
-        self.__receive_message()
-        message = Client.__get_user_input()
-        self.__send_message(message)
-        self.__receive_message()
+        receiver = threading.Thread(target=self.__receive_message)
+        receiver.start()
+        self.__handle_user_inputs()
+        receiver.join()
 
     def __receive_message(self):
-        if not self.is_alive:
-            return
-        try:
-            message = self.tcp_socket.recv(self.buffer_size)
-            print(message.decode())
-        except:
-            print("Server disconnected, listening for offer requests...")
+        while self.is_alive and self.is_playing:
+            try:
+                message = self.tcp_socket.recv(self.buffer_size)
+                if message:
+                    print(message.decode())
+                else:
+                    print("Server disconnected, listening for offer requestes...")
+                    self.is_playing = False
+            except socket.timeout:
+                continue
+            except:
+                print("Server disconnected, listening for offer requests...")
+                self.is_playing = False
+                return
+
+    def __handle_user_inputs(self):
+        message = getch.getch().decode()
+        self.__send_message(str(message))
 
     def __send_message(self, message):
         try:
             self.tcp_socket.send(message.encode())
         except:
             print("Server disconnected, listening for offer requests...")
-
-    @staticmethod
-    def __get_user_input():
-        return str(getch.getch().decode())
+            self.is_playing = False
