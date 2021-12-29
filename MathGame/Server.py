@@ -7,6 +7,7 @@ import random
 import threading
 import time
 import socket
+from scapy.arch import get_if_addr
 
 
 
@@ -15,7 +16,7 @@ class Server:
         # TODO: make attributes private
         self.is_alive = False
         self.is_broadcasting = False
-        self.local_ip = socket.gethostbyname(socket.gethostname())
+        self.local_ip = get_if_addr("eth2")  # TODO: socket.gethostbyname(socket.gethostname()), test- get_if_addr("eth2")
         self.udp_socket = None
         self.udp_ip = "255.255.255.255"
         self.udp_port = 13117
