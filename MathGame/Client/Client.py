@@ -1,9 +1,9 @@
 import socket
 import struct
 
-try:  # lab
+try:  # linux
     import getch as getch
-except:  # pc
+except:  # windows
     import msvcrt as getch
 
 
@@ -65,20 +65,18 @@ class Client:
     def __game(self):
         self.__send_message(self.team_name + "\n")
         self.__receive_message()
-        self.__send_message(self.__get_user_input())
+        message = Client.__get_user_input()
+        self.__send_message(message)
         self.__receive_message()
 
     def __receive_message(self):
-        while self.is_alive:
-            try:
-                message = self.tcp_socket.recv(self.buffer_size)
-            except:
-                print("Server disconnected, listening for offer requests...")
-                return
-            if not message:
-                print("Server disconnected, listening for offer requests...")
-                return
+        if not self.is_alive:
+            return
+        try:
+            message = self.tcp_socket.recv(self.buffer_size)
             print(message.decode())
+        except:
+            print("Server disconnected, listening for offer requests...")
 
     def __send_message(self, message):
         try:

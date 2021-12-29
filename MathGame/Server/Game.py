@@ -1,3 +1,4 @@
+import queue
 import random
 import threading
 import time
@@ -29,17 +30,19 @@ class Game:
 
     def __game(self):
         # wait 10 seconds
-        time.sleep(10)
+        # time.sleep(10)  # TODO: uncomment
         # get answer
         # two threads,each for each player
-        response1 = []
-        response2 = []
-        t1 = threading.Thread(target=Game.__handle_player_question_answer, args=(self.__player1, response1))
-        t2 = threading.Thread(target=Game.__handle_player_question_answer, args=(self.__player2, response2))
+        response1 = queue.Queue()
+        response2 = queue.Queue()
+        t1 = threading.Thread(target=Game.__handle_player_question_answer, args=[self, self.__player1, response1])
+        t2 = threading.Thread(target=Game.__handle_player_question_answer, args=[self, self.__player2, response2])
         t1.start()
         t2.start()
         t1.join()
         t2.join()
+        response1 = response1.get()
+        response2 = response2.get()
 
         # set result
         message = self.__get_message("over") + str(self.__answer) + "!\n\n"
@@ -76,17 +79,19 @@ class Game:
         print("Game over, sending out offer requests...")
 
     def __handle_player_question_answer(self, player, response):
-        player.get_sockt.settimeout(10)
+        player.get_socket().settimeout(10)
         message = self.__get_message("begin") + self.__question + "?\n"
-        player.get_sockt.send(message.encode())
-        start = time.localtime()
+        player.get_socket().send(message.encode())
+        start = time.time()
+        if player is self.__player1:
+            time.sleep(5)
         try:
-            ans = player.get_sockt.recv(1024)
+            ans = player.get_socket().recv(1024)
         except socket.timeout:
             ans = float("-inf")
-        end = time.localtime()
-        response.append(ans)
-        response.append(end - start)
+        end = time.time()
+        return_tuple = (ans, end - start)
+        response.put(return_tuple)
 
     def __send_message_to_players(self, message):
         self.__player1.get_socket().send(message.encode())
