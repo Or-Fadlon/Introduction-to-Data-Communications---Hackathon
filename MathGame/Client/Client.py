@@ -89,7 +89,8 @@ class Client:
                 return
 
     def __handle_user_inputs(self):
-        message = getch.getch().decode()
+        # message = getch.getch()
+        message = input()
         self.__send_message(str(message))
 
     def __send_message(self, message):
