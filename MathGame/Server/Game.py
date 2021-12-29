@@ -62,7 +62,7 @@ class Game:
         if winner is None:
             message += self.__get_message("draw")
         else:
-            message += self.__get_message("win")
+            message += self.__get_message("win") + winner
 
         # send results
         self.__send_message_to_players(message)
@@ -77,16 +77,17 @@ class Game:
         print("Game over, sending out offer requests...")
 
     def __handle_player_question_answer(self, player, response):
-        player.get_socket().settimeout(10)  # TODO: 3 change back to 10
-        message = self.__get_message("begin") + self.__question + "?\n"
+        # player.get_socket().settimeout(10)  # TODO: 3 change back to 10
+        message = self.__get_message("begin") + self.__question + "? \n"
         player.get_socket().send(message.encode())
         start = time.time()
         try:
             ans = player.get_socket().recv(1024)
+            ans = ans.decode()
         except socket.timeout:
             ans = float("-inf")
         end = time.time()
-        return_tuple = (ans, end - start)
+        return_tuple = (int(ans), end - start)
         response.put(return_tuple)
 
     def __send_message_to_players(self, message):
